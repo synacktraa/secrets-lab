@@ -38,3 +38,21 @@ jobs:
             leak-hunt.txt
             rotation.txt
           if-no-files-found: ignore
+
+  # Builds .devcontainer the way Codespaces does (same CLI version as its
+  # creation log), then runs both labs inside it. A failed build here means
+  # the Codespaces button opens a recovery container with no Docker.
+  codespace:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the dev container
+        run: npx -y @devcontainers/cli@0.83.3 up --workspace-folder .
+      - name: Both labs pass inside it
+        run: |
+          npx -y @devcontainers/cli@0.83.3 exec --workspace-folder . bash -c '
+            set -eo pipefail
+            bash labs/1-leak-hunt/run.sh | tee leak-hunt.txt
+            bash labs/2-rotation/run.sh | tee rotation.txt
+            bash tests/check-results.sh leak-hunt.txt rotation.txt'
