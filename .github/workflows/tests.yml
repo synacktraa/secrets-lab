@@ -1,0 +1,40 @@
+name: labs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC: catches image updates that break a lab
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash # runs with -eo pipefail, so tee can't hide a failing lab
+
+jobs:
+  labs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: The checker catches broken results
+        run: bash tests/self-test.sh
+      - name: "Lab 1: leak hunt"
+        run: bash labs/1-leak-hunt/run.sh | tee leak-hunt.txt
+      - name: "Lab 2: password rotation"
+        run: bash labs/2-rotation/run.sh | tee rotation.txt
+      - name: Results match the article
+        run: bash tests/check-results.sh leak-hunt.txt rotation.txt
+      - name: Keep the outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lab-outputs
+          path: |
+            leak-hunt.txt
+            rotation.txt
+          if-no-files-found: ignore
