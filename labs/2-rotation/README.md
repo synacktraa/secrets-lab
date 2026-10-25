@@ -3,7 +3,7 @@
 **Question:** you change a database password while an app is using it. How many connections fail, and does keeping a second login avoid it?
 
 ```bash
-bash run.sh
+bash labs/2-rotation/run.sh
 ```
 
 About 30 seconds. Needs Docker (running). See the [lab README](../README.md) for setup and a glossary.

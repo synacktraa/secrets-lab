@@ -3,7 +3,7 @@
 **Question:** a fake API key starts in a `.env` file. After the usual steps (commit it to git, build a Docker image, write a Kubernetes Secret), where can someone still read it?
 
 ```bash
-bash run.sh
+bash labs/1-leak-hunt/run.sh
 ```
 
 About a minute. Needs Docker (running), git, Python 3 and `kubectl`. See the [lab README](../README.md) for setup and a glossary.
