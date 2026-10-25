@@ -1,0 +1,21 @@
+== in-place
+  t=0.0s  app and pool session running as app
+  t=3.1s  rotate: ALTER ROLE app PASSWORD (old password is dead now)
+  t=8.0s  redeploy lands: app now uses the new password
+  result: 43 of 95 new connections failed
+  failures from t=3.1s to t=8.0s; successful connections in that window: 0
+    psql: error: connection to server at "db" (172.19.0.2), port 5432 failed: FATAL:  password authentication failed for user "app"
+  pool session, last answer and how it ended:
+    pool session (app) still answering at t=10.6s
+
+== two-users
+  t=0.0s  app and pool session running as app_blue
+  t=3.0s  issue: CREATE ROLE app_green (both logins work)
+  t=5.0s  roll: app now connects as app_green
+  t=7.0s  revoke: ALTER ROLE app_blue NOLOGIN
+  t=9.0s  revoke for real: pg_terminate_backend() on app_blue's sessions
+  result: 0 of 95 new connections failed
+  pool session, last answer and how it ended:
+    pool session (app_blue) still answering at t=8.6s
+    FATAL:  terminating connection due to administrator command
+

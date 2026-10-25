@@ -1,0 +1,5 @@
+# scratch folder the leak hunt recreates on every run
+work/
+# lab outputs captured by CI or by hand at the repo root
+/leak-hunt.txt
+/rotation.txt

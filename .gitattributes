@@ -1,0 +1,4 @@
+# Keep the scripts LF on Windows checkouts, where core.autocrlf=true would make
+# them CRLF: labs/2-rotation/run.sh feeds scenario.sh to the postgres
+# container's sh, which then fails, and bash on Linux fails on all of them.
+*.sh text eol=lf

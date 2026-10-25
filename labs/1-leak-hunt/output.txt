@@ -1,0 +1,51 @@
+== 1. git: commit a .env, then 'fix' it with .gitignore
+9599f4f stop tracking .env
+7ff2c5a initial commit
+== 2. docker: five ways to hand a key to a build
+sha256:d5cf251665ce1309834da57c0d041a53d442cc2b20bb97b866c7d77cbed0a8a0
+sha256:c9d48a2bcf1192d7bab0079ee0299d6713f37a628a8514352552b2d6feb2fc5f
+sha256:6f7c6e459d9bd461296a8272cc0cd87fc9e1ac661801c1c900533be7c5a1cf23
+sha256:04447addbf20c17a36f1ab3036246653c3bc650a601f5839d5f3836746ce39bc
+sha256:01d4e2ff110826294691193454cebbaf6a15fe8fe4889c684b62e6ae4951250b
+-- leak-arg
+   docker history --no-trunc: 2 lines
+   docker inspect (Config.Env): 0 lines
+    blobs/sha256/d5cf251665ce1309834da57c0d041a53d442cc2b20bb97b866c7d77cbed0a8a0
+   files containing it (every layer + config): 1
+-- leak-env
+   docker history --no-trunc: 2 lines
+   docker inspect (Config.Env): 1 lines
+    blobs/sha256/c9d48a2bcf1192d7bab0079ee0299d6713f37a628a8514352552b2d6feb2fc5f
+    blobs/sha256/d0bfe2b3ae7cb85a835c7b15439e8d9d36095932d5c3d761e86646cb2187bde7
+   files containing it (every layer + config): 2
+-- leak-copy
+   docker history --no-trunc: 0 lines
+   docker inspect (Config.Env): 0 lines
+    blobs/sha256/3654451ba995cece196c20320ce4e8a35fba350acdeb6f3b056272a7b2596436 -> app/.env
+   files containing it (every layer + config): 1
+-- leak-copy-ignored
+   docker history --no-trunc: 0 lines
+   docker inspect (Config.Env): 0 lines
+   files containing it (every layer + config): 0
+-- leak-mount
+   docker history --no-trunc: 0 lines
+   docker inspect (Config.Env): 0 lines
+   files containing it (every layer + config): 0
+   docker history of leak-arg, the RUN step:
+RUN |1 API_KEY=canary-5f0c2e9a41d7 /bin/sh -c test -n "$API_KEY" && echo "build step got a key" # buildkit
+ARG API_KEY=canary-5f0c2e9a41d7
+== 3. kubernetes: a Secret manifest (no cluster needed)
+data:
+  API_KEY: Y2FuYXJ5LTVmMGMyZTlhNDFkNw==
+   base64 -d -> canary-5f0c2e9a41d7
+
+== where did canary-5f0c2e9a41d7 end up?
+git: files in the current commit               not found
+git: history (git log -p)                      FOUND
+docker: ARG used in a RUN step                 FOUND
+docker: ARG promoted to ENV                    FOUND
+docker: COPY . . with no .dockerignore         FOUND
+docker: COPY . . with .env in .dockerignore    not found
+docker: RUN --mount=type=secret                not found
+kubernetes: Secret manifest, after base64 -d   FOUND
+(FOUND means a readable copy of the key is in that place. README.md explains each row.)

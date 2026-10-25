@@ -1,0 +1,3 @@
+FROM python:3.12-slim
+ARG API_KEY
+ENV API_KEY=$API_KEY
